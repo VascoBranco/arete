@@ -1,0 +1,214 @@
+---
+title: "arete (Automated REtrieval from TExt) Automated Report"
+author: ""
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: sandstone
+    toc: true
+    toc_float:
+      collapsed: false
+params:
+  report_data: !r list(
+    human_data = matrix(nrow = 2, ncol = 2, byrow = TRUE,
+                 c(44.34540, 40.18947, 44.58259, 40.11512)),
+    model_data = matrix(nrow = 2, ncol = 2, byrow = TRUE,
+                 c(44.34540, 40.18947, 44.58259, 40.11512)),
+    species_name = "example species",
+    file_name = "example_file.csv",
+    non_intersecting = c(0,0),
+    euc_dist = 0,
+    contingency_table = matrix(nrow = 2, ncol = 2, c(1,1,1,1)),
+    confusion_matrix = matrix(nrow = 2, ncol = 2, c(1,1,1,1)),
+    accuracy = 0,
+    sensitivity = 0,
+    precision = 0,
+    f1 = 0)
+  global_extra: !r c(0,0)
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Details
+
+------------------------------------------------------------------------
+
+**FILE**: `r params$report_data[["file_name"]]`
+
+**SPECIES**: `r params$report_data[["species_name"]]`
+
+## 2. Data
+
+------------------------------------------------------------------------
+
+### 2.1 - Ground truth data
+
+```{r table_student, echo=FALSE}
+  x <- knitr::kable(params$report_data[["human_data"]],
+    format = "html",
+    table.attr = "style='width:30%;'",
+    align = c("c", "c")
+    #, caption = "This is the table caption"
+    , col.names = c("Latitude", "Longitude")
+  )
+    
+  kableExtra::kable_styling(
+      kableExtra::kable_classic_2(x),
+    position = "left"
+  )
+```
+
+### 2.2 - Model data
+
+```{r table_model, echo=FALSE}
+  x <- knitr::kable(params$report_data[["model_data"]],
+    format = "html",
+    table.attr = "style='width:30%;'",
+    align = c("c", "c")
+    #, caption = "This is the table caption"
+    , col.names = c("Latitude", "Longitude")
+  )
+    
+  kableExtra::kable_styling(
+      kableExtra::kable_classic_2(x),
+    position = "left"
+  )
+```
+
+### 2.3 - Scatterplots
+
+```{r points, echo=FALSE}
+for (dat in c("human_data", "model_data")){
+  plot_data = params$report_data[[dat]]
+  colnames(plot_data) = c("Latitude", "Longitude")
+  plot_data = plot_data[,c("Longitude", "Latitude")]
+  
+  plot = ggplot2::ggplot(plot_data, ggplot2::aes(x = Longitude, y = Latitude)) +
+  ggplot2::geom_point(alpha = 0.7, shape = 16) +
+  ggplot2::labs(
+    x = "Longitude",
+    y = "Latitude",
+  ) +
+  ggplot2::theme_minimal(base_size = 14) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold", size = 18, hjust = 0.5),
+    plot.subtitle = ggplot2::element_text(size = 12, hjust = 0.5),
+    legend.position = "right",
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major = ggplot2::element_line(color = "grey80", linetype = "dashed")
+  )
+  
+  if (dat == "human_data"){
+    plot = plot + ggplot2::labs(title = "Ground truth data")
+  } else if (dat == "model_data"){
+    plot = plot + ggplot2::labs(title = "Model data")
+  }
+  
+  plot(plot)
+}
+```
+
+## 3. Analysis
+
+------------------------------------------------------------------------
+
+### 3.1 - Non-intersecting species
+
+For the above file the following NON-INTERSECTING SPECIES were found: Ground truth \| Model (`r params$global_extra[1]`, `r params$global_extra[2]`).
+
+### 3.2 - Euclidean distance
+
+Mean minimum euclidean distance is `r mean(params$report_data[["euc_dist"]])`.
+
+<!-- This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>. -->
+
+<!-- When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this: -->
+
+### 3.3 - Contingency table
+
+```{r contingency_table, echo = FALSE}
+  x = params$report_data[["contingency_table"]]
+  row.names(x) = c("Model", "Human")
+
+  x <- knitr::kable(x,
+    format = "html",
+    table.attr = "style='width:30%;'",
+    align = c("c", "c")
+    #, caption = "This is the table caption"
+    , col.names = c("Model", "Human")
+  )
+    
+  kableExtra::kable_styling(
+      kableExtra::kable_classic_2(x),
+    position = "left"
+  )
+```
+
+-- in --\>
+
+`r params$report_data[["contingency_table"]][1,1] - params$report_data[["contingency_table"]][1,2]` points unique to the model.
+
+`r params$report_data[["contingency_table"]][2,2] - params$report_data[["contingency_table"]][2,1]` points unique to ground truth.
+
+### 3.5 - Confusion matrix
+
+Consider the model output our predicted values and the ground truth data as the observed values. You can then conceptualize the output as being made of True Positives (TP), data points both in the model output and the ground truth; False Negatives (FN), data points in the ground truth but not in the model output and False Positives (FP), data points in the model output but not in the ground truth, the often called “*hallucinations*”.
+
+::: {#testdiv style="margin-bottom:50px;"}
+```{r confusion_matrix, echo = FALSE}
+  x = params$report_data[["confusion_matrix"]]
+  
+  x <- cbind(c("TRUE", "FALSE"), params$report_data[["confusion_matrix"]])
+  
+  x <- cbind(c("Observed", "Observed"), x)
+
+  x <- knitr::kable(x,
+    format = "html",
+    table.attr = "style='width:30%;'",
+    align = c("c", "c"),
+    col.names = c(" ", "  ", "TRUE", "FALSE"),
+    row.names = FALSE
+  )
+
+  x <- kableExtra::kable_styling(
+    kableExtra::add_header_above(
+      kableExtra::kable_classic_2(x),
+      c(" " = 1, "  " = 1, "Predicted" = 2)
+    ),
+    position = "left"
+  )
+
+  kableExtra::collapse_rows(x, columns = c(1), valign = "middle")
+```
+:::
+
+### 3.7 - Performance metrics
+
+Values of four commonly used metrics to report performance: accuracy, sensitivity, specificity, precision and F1. We highly recommend interested users to first consult the documentation of arete::performance_report() and its within referenced sources between using these metrics for model reporting.
+
+```{r perf_metrics, echo = FALSE}
+  perf_metrics = matrix(nrow = 4, ncol = 2, byrow = TRUE,
+                        c("Accuracy", params$report_data[["accuracy"]],
+                          "Recall", params$report_data[["sensitivity"]],
+                          "Precision", params$report_data[["precision"]],
+                          "F1", params$report_data[["f1"]]
+                          ),
+                        dimnames = list(c(), c("Metric", "Value"))
+                        )
+
+    perf_metrics <- knitr::kable(perf_metrics,
+      format = "html",
+      table.attr = "style='width:30%;'",
+      align = c("c", "c")
+      #, caption = "This is the table caption"
+      #, col.names = c("", "TRUE", "FALSE")
+  )
+    
+  kableExtra::kable_styling(
+      kableExtra::kable_classic_2(perf_metrics),
+    position = "left"
+  )
+
+```

@@ -1,0 +1,24 @@
+Species,Location,Coordinates,ID,Type
+Araneus holzapfelae,Limpopo: Blouberg Nature Reserve       ," -22.99, 29.04       ",1,Ground truth
+Araneus holzapfelae,"Little Leigh Farm, Louis Trichardt    "," -22.949, 29.870     ",1,Ground truth
+Araneus holzapfelae,Mpumalanga: Brondal                   ," -25.35, 30.84       ",1,Ground truth
+Araneus holzapfelae,Mpumalanga: Pretoriuskop              ," -25.123, 32.237     ",2,Ground truth
+Araneus holzapfelae,Gauteng: Ezemvelo Nature Reserve       ," -25.80, 28.77       ",2,Ground truth
+Anapistula ataecina,Gauteng: Faerie Glen Nature Reserve    ," -25.74, 28.19       ",2,Ground truth
+Araneus holzapfelae,KwaZulu-Natal: Empangeni              ," -28.72, 31.88       ",3,Ground truth
+Araneus holzapfelae,KwaZulu-Natal: Richards Bay           ," -28.78, 32.10       ",3,Ground truth
+Araneus holzapfelae,"KwaZulu-Natal: iSimangaliso Wetland Park, uMkhuze Game Reserve "," -27.63, 32.25       ",3,Ground truth
+Araneus holzapfelae,KwaZulu-Natal: uMkhuze Game Reserve   ," -27.62174, 32.24543 ",4,Ground truth
+Araneus holzapfelae,KwaZulu-Natal: Isandlwane Nature Reserve ," -28.359, 30.640     ",4,Ground truth
+Araneus holzapfelae,KwaZulu-Natal: Wakefield Farm         ," -29.4987, 29.9106   ",4,Ground truth
+Araneus holzapfelae,Limpopo: Blouberg  ," -22.99, 29.04       ",1,Model
+A. holzapfelae    ,"Little Leigh Farm, Louis Trichardt    "," -22.949, 29.870     ",1,Model
+   Araneus holzapfelae   ,Mpumalanga: Brondal                   ," -25.35, 30.84       ",1,Model
+Araneus holzapfelae,Mpumalanga: Pretoriuskop              ," -25.123, 32.237     ",2,Model
+Araneus holzapfelae,Gauteng: Ezemvelo Nature Reserve       ," -25.85, 28.78       ",2,Model
+Araneus holzapfelae,Faerie Glen," -25.74, 28.19       ",2,Model
+Araneus holzapfelae,KwaZulu-Natal: Empangeni              ," -28.72, 31.88       ",3,Model
+Araneus holzapfelae,KwaZulu-Natal: Richards Bay           ," -29.78, 32.10       ",3,Model
+Araneus holzapfelae,Game Reserve   ," -27.62174, 32.24543 ",4,Model
+Macrothele calpeiana,KwaZulu-Natal: Isandlwane Nature Reserve ," -28.359, 30.640     ",4,Model
+Araneus holzapfelae,KwaZulu-Natal: Wakefield Farm         ," -29.4987, 29.9106   ",4,Model

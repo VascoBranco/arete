@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Package workflow</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+<script>$(document).ready(function(){
+    if (typeof $('[data-toggle="tooltip"]').tooltip === 'function') {
+        $('[data-toggle="tooltip"]').tooltip();
+    }
+    if ($('[data-toggle="popover"]').popover === 'function') {
+        $('[data-toggle="popover"]').popover();
+    }
+});
+</script>
+<style type="text/css">
+.lightable-minimal {
+border-collapse: separate;
+border-spacing: 16px 1px;
+width: 100%;
+margin-bottom: 10px;
+}
+.lightable-minimal td {
+margin-left: 5px;
+margin-right: 5px;
+}
+.lightable-minimal th {
+margin-left: 5px;
+margin-right: 5px;
+}
+.lightable-minimal thead tr:last-child th {
+border-bottom: 2px solid #00000050;
+empty-cells: hide;
+}
+.lightable-minimal tbody tr:first-child td {
+padding-top: 0.5em;
+}
+.lightable-minimal.lightable-hover tbody tr:hover {
+background-color: #f5f5f5;
+}
+.lightable-minimal.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-classic {
+border-top: 0.16em solid #111111;
+border-bottom: 0.16em solid #111111;
+width: 100%;
+margin-bottom: 10px;
+margin: 10px 5px;
+}
+.lightable-classic tfoot tr td {
+border: 0;
+}
+.lightable-classic tfoot tr:first-child td {
+border-top: 0.14em solid #111111;
+}
+.lightable-classic caption {
+color: #222222;
+}
+.lightable-classic td {
+padding-left: 5px;
+padding-right: 5px;
+color: #222222;
+}
+.lightable-classic th {
+padding-left: 5px;
+padding-right: 5px;
+font-weight: normal;
+color: #222222;
+}
+.lightable-classic thead tr:last-child th {
+border-bottom: 0.10em solid #111111;
+}
+.lightable-classic.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-classic.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-classic-2 {
+border-top: 3px double #111111;
+border-bottom: 3px double #111111;
+width: 100%;
+margin-bottom: 10px;
+}
+.lightable-classic-2 tfoot tr td {
+border: 0;
+}
+.lightable-classic-2 tfoot tr:first-child td {
+border-top: 3px double #111111;
+}
+.lightable-classic-2 caption {
+color: #222222;
+}
+.lightable-classic-2 td {
+padding-left: 5px;
+padding-right: 5px;
+color: #222222;
+}
+.lightable-classic-2 th {
+padding-left: 5px;
+padding-right: 5px;
+font-weight: normal;
+color: #222222;
+}
+.lightable-classic-2 tbody tr:last-child td {
+border-bottom: 3px double #111111;
+}
+.lightable-classic-2 thead tr:last-child th {
+border-bottom: 1px solid #111111;
+}
+.lightable-classic-2.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-classic-2.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-material {
+min-width: 100%;
+white-space: nowrap;
+table-layout: fixed;
+font-family: Roboto, sans-serif;
+border: 1px solid #EEE;
+border-collapse: collapse;
+margin-bottom: 10px;
+}
+.lightable-material tfoot tr td {
+border: 0;
+}
+.lightable-material tfoot tr:first-child td {
+border-top: 1px solid #EEE;
+}
+.lightable-material th {
+height: 56px;
+padding-left: 16px;
+padding-right: 16px;
+}
+.lightable-material td {
+height: 52px;
+padding-left: 16px;
+padding-right: 16px;
+border-top: 1px solid #eeeeee;
+}
+.lightable-material.lightable-hover tbody tr:hover {
+background-color: #f5f5f5;
+}
+.lightable-material.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-material.lightable-striped tbody td {
+border: 0;
+}
+.lightable-material.lightable-striped thead tr:last-child th {
+border-bottom: 1px solid #ddd;
+}
+.lightable-material-dark {
+min-width: 100%;
+white-space: nowrap;
+table-layout: fixed;
+font-family: Roboto, sans-serif;
+border: 1px solid #FFFFFF12;
+border-collapse: collapse;
+margin-bottom: 10px;
+background-color: #363640;
+}
+.lightable-material-dark tfoot tr td {
+border: 0;
+}
+.lightable-material-dark tfoot tr:first-child td {
+border-top: 1px solid #FFFFFF12;
+}
+.lightable-material-dark th {
+height: 56px;
+padding-left: 16px;
+padding-right: 16px;
+color: #FFFFFF60;
+}
+.lightable-material-dark td {
+height: 52px;
+padding-left: 16px;
+padding-right: 16px;
+color: #FFFFFF;
+border-top: 1px solid #FFFFFF12;
+}
+.lightable-material-dark.lightable-hover tbody tr:hover {
+background-color: #FFFFFF12;
+}
+.lightable-material-dark.lightable-striped tbody tr:nth-child(even) {
+background-color: #FFFFFF12;
+}
+.lightable-material-dark.lightable-striped tbody td {
+border: 0;
+}
+.lightable-material-dark.lightable-striped thead tr:last-child th {
+border-bottom: 1px solid #FFFFFF12;
+}
+.lightable-paper {
+width: 100%;
+margin-bottom: 10px;
+color: #444;
+}
+.lightable-paper tfoot tr td {
+border: 0;
+}
+.lightable-paper tfoot tr:first-child td {
+border-top: 1px solid #00000020;
+}
+.lightable-paper thead tr:last-child th {
+color: #666;
+vertical-align: bottom;
+border-bottom: 1px solid #00000020;
+line-height: 1.15em;
+padding: 10px 5px;
+}
+.lightable-paper td {
+vertical-align: middle;
+border-bottom: 1px solid #00000010;
+line-height: 1.15em;
+padding: 7px 5px;
+}
+.lightable-paper.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-paper.lightable-striped tbody tr:nth-child(even) {
+background-color: #00000008;
+}
+.lightable-paper.lightable-striped tbody td {
+border: 0;
+}
+</style>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Package workflow</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(arete)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co">#&gt; Can&#39;t find a default virtual environment for arete. If this is your first time loading the package, please run arete_setup().</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co">#&gt; Attaching package: &#39;arete&#39;</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co">#&gt; The following object is masked from &#39;package:base&#39;:</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&gt;     labels</span></span></code></pre></div>
+<div id="data-extraction" class="section level2">
+<h2>Data extraction</h2>
+<p>Let’s say you want to extract data from a paper, normally you’d run
+something that looks like this:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>geotest <span class="ot">=</span> arete<span class="sc">::</span><span class="fu">get_geodata</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="at">path =</span> file_path,</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">user_key =</span> <span class="fu">list</span>(<span class="at">key =</span> <span class="st">&quot;your key here!&quot;</span>, <span class="at">premium =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;gpt-4o&quot;</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">outpath =</span> <span class="st">&quot;/your/path/here&quot;</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  )</span></code></pre></div>
+<p>As the extraction process depends on an internet connection and your
+own personal user key, this won’t run. Instead we will open a csv with
+pre-run results. But feel free to try it! get_geodata generates one csv
+file per pdf in its <em>input</em> parameter. In our example data we
+have already collected all csvs under a single table.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>geotest <span class="ot">=</span> arete<span class="sc">::</span><span class="fu">arete_data</span>(<span class="st">&quot;holzapfelae-extract&quot;</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>kableExtra<span class="sc">::</span><span class="fu">kable</span>(geotest)</span></code></pre></div>
+<table>
+<colgroup>
+<col width="17%" />
+<col width="52%" />
+<col width="16%" />
+<col width="2%" />
+<col width="10%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Species</th>
+<th align="left">Location</th>
+<th align="left">Coordinates</th>
+<th align="right">ID</th>
+<th align="left">Type</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">Limpopo: Blouberg Nature Reserve</td>
+<td align="left">-22.99, 29.04</td>
+<td align="right">1</td>
+<td align="left">Ground truth</td>
+</tr>
+<tr class="even">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">Little Leigh Farm, Louis Trichardt</td>
+<td align="left">-22.949, 29.870</td>
+<td align="right">1</td>
+<td align="left">Ground truth</td>
+</tr>
+<tr class="odd">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">Mpumalanga: Brondal</td>
+<td align="left">-25.35, 30.84</td>
+<td align="right">1</td>
+<td align="left">Ground truth</td>
+</tr>
+<tr class="even">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">Mpumalanga: Pretoriuskop</td>
+<td align="left">-25.123, 32.237</td>
+<td align="right">2</td>
+<td align="left">Ground truth</td>
+</tr>
+<tr class="odd">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">Gauteng: Ezemvelo Nature Reserve</td>
+<td align="left">-25.80, 28.77</td>
+<td align="right">2</td>
+<td align="left">Ground truth</td>
+</tr>
+<tr class="even">
+<td align="left">Anapistula ataecina</td>
+<td align="left">Gauteng: Faerie Glen Nature Reserve</td>
+<td align="left">-25.74, 28.19</td>
+<td align="right">2</td>
+<td align="left">Ground truth</td>
+</tr>
+<tr class="odd">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">KwaZulu-Natal: Empangeni</td>
+<td align="left">-28.72, 31.88</td>
+<td align="right">3</td>
+<td align="left">Ground truth</td>
+</tr>
+<tr class="even">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">KwaZulu-Natal: Richards Bay</td>
+<td align="left">-28.78, 32.10</td>
+<td align="right">3</td>
+<td align="left">Ground truth</td>
+</tr>
+<tr class="odd">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">KwaZulu-Natal: iSimangaliso Wetland Park, uMkhuze Game
+Reserve</td>
+<td align="left">-27.63, 32.25</td>
+<td align="right">3</td>
+<td align="left">Ground truth</td>
+</tr>
+<tr class="even">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">KwaZulu-Natal: uMkhuze Game Reserve</td>
+<td align="left">-27.62174, 32.24543</td>
+<td align="right">4</td>
+<td align="left">Ground truth</td>
+</tr>
+<tr class="odd">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">KwaZulu-Natal: Isandlwane Nature Reserve</td>
+<td align="left">-28.359, 30.640</td>
+<td align="right">4</td>
+<td align="left">Ground truth</td>
+</tr>
+<tr class="even">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">KwaZulu-Natal: Wakefield Farm</td>
+<td align="left">-29.4987, 29.9106</td>
+<td align="right">4</td>
+<td align="left">Ground truth</td>
+</tr>
+<tr class="odd">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">Limpopo: Blouberg</td>
+<td align="left">-22.99, 29.04</td>
+<td align="right">1</td>
+<td align="left">Model</td>
+</tr>
+<tr class="even">
+<td align="left">A. holzapfelae</td>
+<td align="left">Little Leigh Farm, Louis Trichardt</td>
+<td align="left">-22.949, 29.870</td>
+<td align="right">1</td>
+<td align="left">Model</td>
+</tr>
+<tr class="odd">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">Mpumalanga: Brondal</td>
+<td align="left">-25.35, 30.84</td>
+<td align="right">1</td>
+<td align="left">Model</td>
+</tr>
+<tr class="even">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">Mpumalanga: Pretoriuskop</td>
+<td align="left">-25.123, 32.237</td>
+<td align="right">2</td>
+<td align="left">Model</td>
+</tr>
+<tr class="odd">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">Gauteng: Ezemvelo Nature Reserve</td>
+<td align="left">-25.85, 28.78</td>
+<td align="right">2</td>
+<td align="left">Model</td>
+</tr>
+<tr class="even">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">Faerie Glen</td>
+<td align="left">-25.74, 28.19</td>
+<td align="right">2</td>
+<td align="left">Model</td>
+</tr>
+<tr class="odd">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">KwaZulu-Natal: Empangeni</td>
+<td align="left">-28.72, 31.88</td>
+<td align="right">3</td>
+<td align="left">Model</td>
+</tr>
+<tr class="even">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">KwaZulu-Natal: Richards Bay</td>
+<td align="left">-29.78, 32.10</td>
+<td align="right">3</td>
+<td align="left">Model</td>
+</tr>
+<tr class="odd">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">Game Reserve</td>
+<td align="left">-27.62174, 32.24543</td>
+<td align="right">4</td>
+<td align="left">Model</td>
+</tr>
+<tr class="even">
+<td align="left">Macrothele calpeiana</td>
+<td align="left">KwaZulu-Natal: Isandlwane Nature Reserve</td>
+<td align="left">-28.359, 30.640</td>
+<td align="right">4</td>
+<td align="left">Model</td>
+</tr>
+<tr class="odd">
+<td align="left">Araneus holzapfelae</td>
+<td align="left">KwaZulu-Natal: Wakefield Farm</td>
+<td align="left">-29.4987, 29.9106</td>
+<td align="right">4</td>
+<td align="left">Model</td>
+</tr>
+</tbody>
+</table>
+<p>In this case we will be as careful as possible and go over outliers
+separately from <code>get_geodata()</code>. This is a good example of
+the limitations of the process: <code>geo_geodata()</code> can
+automatically do the next step for you but in situations where for some
+reason coordinates are written in text as latitude longitude instead of
+longitude latitude, some outlier detection methods (env, svm) will
+fail.</p>
+</div>
+<div id="process-coordinates" class="section level2">
+<h2>Process coordinates</h2>
+<p>Let’s start by converting all of the coordinates from text to numeric
+values.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>geocoords <span class="ot">=</span> <span class="fu">string_to_coords</span>(geotest<span class="sc">$</span>Coordinates)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt; 23 out of 23 (100%) succeded.</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>kableExtra<span class="sc">::</span><span class="fu">kable</span>(geocoords)</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Lat</th>
+<th align="right">Long</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">-22.99000</td>
+<td align="right">29.04000</td>
+</tr>
+<tr class="even">
+<td align="right">-22.94900</td>
+<td align="right">29.87000</td>
+</tr>
+<tr class="odd">
+<td align="right">-25.35000</td>
+<td align="right">30.84000</td>
+</tr>
+<tr class="even">
+<td align="right">-25.12300</td>
+<td align="right">32.23700</td>
+</tr>
+<tr class="odd">
+<td align="right">-25.80000</td>
+<td align="right">28.77000</td>
+</tr>
+<tr class="even">
+<td align="right">-25.74000</td>
+<td align="right">28.19000</td>
+</tr>
+<tr class="odd">
+<td align="right">-28.72000</td>
+<td align="right">31.88000</td>
+</tr>
+<tr class="even">
+<td align="right">-28.78000</td>
+<td align="right">32.10000</td>
+</tr>
+<tr class="odd">
+<td align="right">-27.63000</td>
+<td align="right">32.25000</td>
+</tr>
+<tr class="even">
+<td align="right">-27.62174</td>
+<td align="right">32.24543</td>
+</tr>
+<tr class="odd">
+<td align="right">-28.35900</td>
+<td align="right">30.64000</td>
+</tr>
+<tr class="even">
+<td align="right">-29.49870</td>
+<td align="right">29.91060</td>
+</tr>
+<tr class="odd">
+<td align="right">-22.99000</td>
+<td align="right">29.04000</td>
+</tr>
+<tr class="even">
+<td align="right">-22.94900</td>
+<td align="right">29.87000</td>
+</tr>
+<tr class="odd">
+<td align="right">-25.35000</td>
+<td align="right">30.84000</td>
+</tr>
+<tr class="even">
+<td align="right">-25.12300</td>
+<td align="right">32.23700</td>
+</tr>
+<tr class="odd">
+<td align="right">-25.85000</td>
+<td align="right">28.78000</td>
+</tr>
+<tr class="even">
+<td align="right">-25.74000</td>
+<td align="right">28.19000</td>
+</tr>
+<tr class="odd">
+<td align="right">-28.72000</td>
+<td align="right">31.88000</td>
+</tr>
+<tr class="even">
+<td align="right">-29.78000</td>
+<td align="right">32.10000</td>
+</tr>
+<tr class="odd">
+<td align="right">-27.62174</td>
+<td align="right">32.24543</td>
+</tr>
+<tr class="even">
+<td align="right">-28.35900</td>
+<td align="right">30.64000</td>
+</tr>
+<tr class="odd">
+<td align="right">-29.49870</td>
+<td align="right">29.91060</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="process-species-names" class="section level2">
+<h2>Process species names</h2>
+<p>Often species names between human extracted data and model extracted
+data will not match, for example as a result of humans using species’
+abbreviated name as opposed to its full name. Additionally models will
+sometimes erratically and add characters that might go undetected,
+especially if OCR extracted text was used. In order to have a good idea
+of model performance it is then often important to standardize species
+names. Here is an example for paper 1 in our dataset:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>geonames <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="at">human_names =</span> geotest[geotest<span class="sc">$</span>ID <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> geotest<span class="sc">$</span>Type <span class="sc">==</span> <span class="st">&quot;Ground truth&quot;</span>, <span class="st">&quot;Species&quot;</span>],</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">model_names =</span> geotest[geotest<span class="sc">$</span>ID <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> geotest<span class="sc">$</span>Type <span class="sc">==</span> <span class="st">&quot;Model&quot;</span>, <span class="st">&quot;Species&quot;</span>]</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  )</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>mismatch <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(geonames))[geonames<span class="sc">$</span>human_names <span class="sc">!=</span> geonames<span class="sc">$</span>model_names]</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>geonames <span class="ot">=</span> kableExtra<span class="sc">::</span><span class="fu">kable</span>(geonames)</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>geonames <span class="ot">=</span> kableExtra<span class="sc">::</span><span class="fu">row_spec</span>(geonames, mismatch, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>geonames</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+human_names
+</th>
+<th style="text-align:left;">
+model_names
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Araneus holzapfelae
+</td>
+<td style="text-align:left;">
+Araneus holzapfelae
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: red !important;">
+Araneus holzapfelae
+</td>
+<td style="text-align:left;color: red !important;">
+A. holzapfelae
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: red !important;">
+Araneus holzapfelae
+</td>
+<td style="text-align:left;color: red !important;">
+Araneus holzapfelae
+</td>
+</tr>
+</tbody>
+</table>
+<p>By using <code>process_species_names()</code> we standardize our
+species names and our data is correctly associated as referring to the
+same species.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>geotest<span class="sc">$</span>Species <span class="ot">=</span> <span class="fu">process_species_names</span>(geotest<span class="sc">$</span>Species)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>geonames <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">human_names =</span> geotest[geotest<span class="sc">$</span>ID <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> geotest<span class="sc">$</span>Type <span class="sc">==</span> <span class="st">&quot;Ground truth&quot;</span>, <span class="st">&quot;Species&quot;</span>],</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="at">model_names =</span> geotest[geotest<span class="sc">$</span>ID <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> geotest<span class="sc">$</span>Type <span class="sc">==</span> <span class="st">&quot;Model&quot;</span>, <span class="st">&quot;Species&quot;</span>]</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  )</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>geonames <span class="ot">=</span> kableExtra<span class="sc">::</span><span class="fu">kable</span>(geonames)</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>geonames <span class="ot">=</span> kableExtra<span class="sc">::</span><span class="fu">row_spec</span>(geonames, mismatch, <span class="at">color =</span> <span class="st">&quot;green&quot;</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>geonames</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+human_names
+</th>
+<th style="text-align:left;">
+model_names
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<ol style="list-style-type: lower-alpha">
+<li>holzapfelae
+</td>
+<td style="text-align:left;">
+<ol style="list-style-type: lower-alpha">
+<li>holzapfelae
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: green !important;">
+<ol style="list-style-type: lower-alpha">
+<li>holzapfelae
+</td>
+<td style="text-align:left;color: green !important;">
+<ol style="list-style-type: lower-alpha">
+<li>holzapfelae
+</td>
+</tr>
+<tr>
+<td style="text-align:left;color: green !important;">
+<ol style="list-style-type: lower-alpha">
+<li>holzapfelae
+</td>
+<td style="text-align:left;color: green !important;">
+<ol style="list-style-type: lower-alpha">
+<li>holzapfelae
+</td>
+</tr>
+</tbody>
+</table></li>
+</ol></li>
+</ol></li>
+</ol></li>
+</ol></li>
+</ol></li>
+</ol>
+</div>
+<div id="process-outliers" class="section level2">
+<h2>Process outliers</h2>
+<p>Often it pays off to be suspicious of data generated automatically
+through machine learning (one could argue this true of human generated
+data as well). For this we’ll use the utilities in package <a href="https://cran.r-project.org/package=gecko"><em>gecko</em></a>,
+which arete calls. In order for it to work, <em>gecko</em> needs to be
+setup which we recommend you do after reading the documentation of
+functions <code>gecko::gecko.setDir()</code> and
+<code>gecko::gecko.worldclim()</code>. Setup will require a one-time
+potentially heavy download of an environmental dataset, <a href="https://www.worldclim.org/">WorldClim</a>. Function
+gecko::outliers.detect will use this data to determine which points are
+likely outliers through different methods, including calculating the
+environmental and geographic distance between points and training a
+support vector machine model on supplied data. The outcome of these
+methods are collected in separate columns and the total number of
+methods suggesting a given point as an outlier is shown in column
+<code>possible.outliers</code> We then have:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>geoout <span class="ot">=</span> gecko<span class="sc">::</span><span class="fu">outliers.detect</span>(geocoords[<span class="dv">2</span><span class="sc">:</span><span class="dv">1</span>])</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&gt; All dimensions are missing at least one value. Trying rows.</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>kableExtra<span class="sc">::</span><span class="fu">kable</span>(geoout)</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="right">x_coords</th>
+<th align="right">y_coords</th>
+<th align="left">env</th>
+<th align="left">geo</th>
+<th align="right">possible.outliers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">29.04000</td>
+<td align="right">-22.99000</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">29.87000</td>
+<td align="right">-22.94900</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">30.84000</td>
+<td align="right">-25.35000</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">32.23700</td>
+<td align="right">-25.12300</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">28.77000</td>
+<td align="right">-25.80000</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">28.19000</td>
+<td align="right">-25.74000</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">31.88000</td>
+<td align="right">-28.72000</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">32.10000</td>
+<td align="right">-28.78000</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">32.25000</td>
+<td align="right">-27.63000</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">32.24543</td>
+<td align="right">-27.62174</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">30.64000</td>
+<td align="right">-28.35900</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">29.91060</td>
+<td align="right">-29.49870</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">29.04000</td>
+<td align="right">-22.99000</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">29.87000</td>
+<td align="right">-22.94900</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">30.84000</td>
+<td align="right">-25.35000</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">32.23700</td>
+<td align="right">-25.12300</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">28.78000</td>
+<td align="right">-25.85000</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">28.19000</td>
+<td align="right">-25.74000</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">31.88000</td>
+<td align="right">-28.72000</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">32.10000</td>
+<td align="right">-29.78000</td>
+<td align="left">NA</td>
+<td align="left">FALSE</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="right">32.24543</td>
+<td align="right">-27.62174</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">30.64000</td>
+<td align="right">-28.35900</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">29.91060</td>
+<td align="right">-29.49870</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="create-performance-reports" class="section level2">
+<h2>Create performance reports</h2>
+<p>Finally, we can determine how our model performed by processing all
+of our data through function <code>performance_report()</code>. This
+function takes two initial tables of equal formatting, one of human
+extracted data and another of model extracted data and computes a series
+of metrics that are helpful to get a sense of where mistakes might be
+found.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>geotest <span class="ot">=</span> <span class="fu">cbind</span>(geotest[,<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], geocoords, geotest[,<span class="dv">4</span><span class="sc">:</span><span class="dv">5</span>])</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>geotest <span class="ot">=</span> <span class="fu">list</span>(</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="at">GT =</span> geotest[geotest<span class="sc">$</span>Type <span class="sc">==</span> <span class="st">&quot;Ground truth&quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>],</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">MD =</span> geotest[geotest<span class="sc">$</span>Type <span class="sc">==</span> <span class="st">&quot;Model&quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>]</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>)</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>geo_report <span class="ot">=</span> <span class="fu">performance_report</span>(geotest<span class="sc">$</span>GT, geotest<span class="sc">$</span>MD, <span class="at">full_locations =</span> <span class="st">&quot;both&quot;</span>, <span class="at">verbose =</span> <span class="cn">FALSE</span>, <span class="at">rmds =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<p>For locations, the Levenshtein distance is calculated between terms.
+For coordinates, it creates one confusion matrix for every species in
+common between sets. These are composed of True Positives (TP, perfectly
+matching coordinates from both tables), False Positives (FP, coordinates
+showing up only on the model extracted data) and False Negatives (FN,
+coordinates showing up only on the human extracted data). True Negatives
+are assumed to not apply. Several metrics are then calculated using the
+confusion matrix, including accuracy, precision, recall and the F1
+score, the details of which can be found in the documentation of
+<code>performance_report()</code>. An additional global confusion matrix
+is created which also includes errors (FP and FN) that are the result of
+species unique to each set. More metrics appear on the extended reports
+created through <code>rmds = FALSE</code>, including versions of these
+already mentioned metrics that are weighed by the degree of error being
+shown. <em>i.e.</em>, if the model hallucinates a data point that is
+close to existing points its weight as a False Positive is less than if
+it hallucinated a data point completely different from all other
+points.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>geo_report</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; $levenshtein</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt;    nchar mean_minimum_levenshtein file</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; 1     38                       20    1</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; 2     41                        0    1</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; 3     38                        0    1</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt; 4     38                        0    2</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt; 5     41                        0    2</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; 6     38                       11    2</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt; 7     38                        0    3</span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt; 8     41                        0    3</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; 9     38                       38    3</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; 10    38                       15    4</span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt; 11    41                        0    4</span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; 12    38                        0    4</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt; $mean_minimum_levenshtein</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co">#&gt;         1         2         3         4 </span></span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="co">#&gt;  6.666667  3.666667 12.666667  5.000000 </span></span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="co">#&gt; $adjusted_m_m_levenshtein</span></span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="co">#&gt;          1          2          3          4 </span></span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a><span class="co">#&gt; 0.17543860 0.09649123 0.33333333 0.13157895 </span></span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="co">#&gt; $`1_a. holzapfelae`</span></span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="co">#&gt;       TRUE FALSE</span></span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="co">#&gt; TRUE     3     0</span></span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="co">#&gt; FALSE    0    NA</span></span>
+<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="co">#&gt; $exclusive_to_each_set</span></span>
+<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="co">#&gt;      set     file species        count</span></span>
+<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a><span class="co">#&gt; [1,] &quot;human&quot; &quot;2&quot;  &quot;a. ataecina&quot;  &quot;1&quot;  </span></span>
+<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a><span class="co">#&gt; [2,] &quot;model&quot; &quot;4&quot;  &quot;m. calpeiana&quot; &quot;1&quot;  </span></span>
+<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-35"><a href="#cb9-35" tabindex="-1"></a><span class="co">#&gt; $`2_a. holzapfelae`</span></span>
+<span id="cb9-36"><a href="#cb9-36" tabindex="-1"></a><span class="co">#&gt;       TRUE FALSE</span></span>
+<span id="cb9-37"><a href="#cb9-37" tabindex="-1"></a><span class="co">#&gt; TRUE     1     2</span></span>
+<span id="cb9-38"><a href="#cb9-38" tabindex="-1"></a><span class="co">#&gt; FALSE    1    NA</span></span>
+<span id="cb9-39"><a href="#cb9-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-40"><a href="#cb9-40" tabindex="-1"></a><span class="co">#&gt; $`3_a. holzapfelae`</span></span>
+<span id="cb9-41"><a href="#cb9-41" tabindex="-1"></a><span class="co">#&gt;       TRUE FALSE</span></span>
+<span id="cb9-42"><a href="#cb9-42" tabindex="-1"></a><span class="co">#&gt; TRUE     1     0</span></span>
+<span id="cb9-43"><a href="#cb9-43" tabindex="-1"></a><span class="co">#&gt; FALSE    1    NA</span></span>
+<span id="cb9-44"><a href="#cb9-44" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-45"><a href="#cb9-45" tabindex="-1"></a><span class="co">#&gt; $`4_a. holzapfelae`</span></span>
+<span id="cb9-46"><a href="#cb9-46" tabindex="-1"></a><span class="co">#&gt;       TRUE FALSE</span></span>
+<span id="cb9-47"><a href="#cb9-47" tabindex="-1"></a><span class="co">#&gt; TRUE     2     0</span></span>
+<span id="cb9-48"><a href="#cb9-48" tabindex="-1"></a><span class="co">#&gt; FALSE    1    NA</span></span>
+<span id="cb9-49"><a href="#cb9-49" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-50"><a href="#cb9-50" tabindex="-1"></a><span class="co">#&gt; $global</span></span>
+<span id="cb9-51"><a href="#cb9-51" tabindex="-1"></a><span class="co">#&gt;       TRUE FALSE</span></span>
+<span id="cb9-52"><a href="#cb9-52" tabindex="-1"></a><span class="co">#&gt; TRUE     7     3</span></span>
+<span id="cb9-53"><a href="#cb9-53" tabindex="-1"></a><span class="co">#&gt; FALSE    4    NA</span></span></code></pre></div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

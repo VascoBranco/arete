@@ -1,0 +1,105 @@
+---
+title: "Package workflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Package workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo = TRUE, results = "hide"}
+library(arete)
+```
+
+## Data extraction
+Let's say you want to extract data from a paper, normally you'd run something that looks like this:
+```{r extraction, eval=FALSE}
+geotest = arete::get_geodata(
+  path = file_path,
+  user_key = list(key = "your key here!", premium = TRUE),
+  model = "gpt-4o",
+  outpath = "/your/path/here"
+  )
+```
+
+As the extraction process depends on an internet connection and your own personal user key, this won't run. Instead we will open a csv with pre-run results. But feel free to try it! get_geodata generates one csv file per pdf in its *input* parameter. In our example data we have already collected all csvs under a single table.
+
+
+```{r pre-run}
+geotest = arete::arete_data("holzapfelae-extract")
+
+kableExtra::kable(geotest)
+```
+
+In this case we will be as careful as possible and go over outliers separately from `get_geodata()`. This is a good example of the limitations of the process: `geo_geodata()` can automatically do the next step for you but in situations where for some reason coordinates are written in text as latitude longitude instead of longitude latitude, some outlier detection methods (env, svm) will fail.
+
+
+## Process coordinates
+Let's start by converting all of the coordinates from text to numeric values.
+```{r coords}
+geocoords = string_to_coords(geotest$Coordinates)
+
+kableExtra::kable(geocoords)
+```
+
+## Process species names
+Often species names between human extracted data and model extracted data will not match, for example as a result of humans using species' abbreviated name as opposed to its full name. Additionally models will sometimes erratically and add characters that might go undetected, especially if OCR extracted text was used. In order to have a good idea of model performance it is then often important to standardize species names. Here is an example for paper 1 in our dataset:
+```{r species_1}
+geonames = data.frame(
+  human_names = geotest[geotest$ID == 1 & geotest$Type == "Ground truth", "Species"],
+  model_names = geotest[geotest$ID == 1 & geotest$Type == "Model", "Species"]
+  )
+
+mismatch = c(1:nrow(geonames))[geonames$human_names != geonames$model_names]
+geonames = kableExtra::kable(geonames)
+geonames = kableExtra::row_spec(geonames, mismatch, color = "red")
+
+geonames
+```
+By using `process_species_names()` we standardize our species names and our data is correctly associated as referring to the same species.
+```{r species_2}
+geotest$Species = process_species_names(geotest$Species)
+
+geonames = data.frame(
+  human_names = geotest[geotest$ID == 1 & geotest$Type == "Ground truth", "Species"],
+  model_names = geotest[geotest$ID == 1 & geotest$Type == "Model", "Species"]
+  )
+geonames = kableExtra::kable(geonames)
+geonames = kableExtra::row_spec(geonames, mismatch, color = "green")
+
+geonames
+```
+
+
+## Process outliers
+Often it pays off to be suspicious of data generated automatically through machine learning (one could argue this true of human generated data as well). For this we'll use the utilities in package [*gecko*](https://cran.r-project.org/package=gecko), which arete calls. In order for it to work, *gecko* needs to be setup which we recommend you do after reading the documentation of functions `gecko::gecko.setDir()` and `gecko::gecko.worldclim()`. Setup will require a one-time potentially heavy download of an environmental dataset, [WorldClim](https://www.worldclim.org/). Function gecko::outliers.detect will use this data to determine which points are likely outliers through different methods, including calculating the environmental and geographic distance between points and training a support vector machine model on supplied data. The outcome of these methods are collected in separate columns and the total number of methods suggesting a given point as an outlier is shown in column `possible.outliers`
+We then have:
+```{r outliers}
+geoout = gecko::outliers.detect(geocoords[2:1])
+
+kableExtra::kable(geoout)
+```
+
+## Create performance reports
+Finally, we can determine how our model performed by processing all of our data through function `performance_report()`. This function takes two initial tables of equal formatting, one of human extracted data and another of model extracted data and computes a series of metrics that are helpful to get a sense of where mistakes might be found. 
+```{r reports_1}
+geotest = cbind(geotest[,1:2], geocoords, geotest[,4:5])
+
+geotest = list(
+  GT = geotest[geotest$Type == "Ground truth", 1:5],
+  MD = geotest[geotest$Type == "Model", 1:5]
+)
+
+geo_report = performance_report(geotest$GT, geotest$MD, full_locations = "both", verbose = FALSE, rmds = FALSE)
+```
+For locations, the Levenshtein distance is calculated between terms. For coordinates, it creates one confusion matrix for every species in common between sets. These are composed of True Positives (TP, perfectly matching coordinates from both tables), False Positives (FP, coordinates showing up only on the model extracted data) and False Negatives (FN, coordinates showing up only on the human extracted data). True Negatives are assumed to not apply. Several metrics are then calculated using the confusion matrix, including accuracy, precision, recall and the F1 score, the details of which can be found in the documentation of `performance_report()`. An additional global confusion matrix is created which also includes errors (FP and FN) that are the result of species unique to each set. More metrics appear on the extended reports created through `rmds = FALSE`, including versions of these already mentioned metrics that are weighed by the degree of error being shown. *i.e.*, if the model hallucinates a data point that is close to existing points its weight as a False Positive is less than if it hallucinated a data point completely different from all other points. 
+```{r reports_2}
+geo_report
+```

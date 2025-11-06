@@ -1,0 +1,394 @@
+---
+title: "arete (Automated REtrieval from TExt) Automated Report"
+author: ""
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: sandstone
+    toc: true
+    toc_float:
+      collapsed: false
+    highlight: tango
+    df_print: paged
+params:
+  report_data: !r list(
+    non_intersecting = c(0,0),
+    accuracy = 0,
+    sensitivity = 0,
+    precision = 0,
+    f1 = 0,
+    class_dist_global = 0)
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(arete)
+```
+
+### 1 - Non-intersecting species
+
+---
+
+The following table shows how many species were found only in one of the datasets.
+```{r inter_species, echo = FALSE}
+### Setup
+cdl = params$report_data[["class_dist_global"]]
+
+  inter_species = matrix(nrow = 1, ncol = 2, byrow = TRUE,
+       c(
+         params$report_data[["non_intersecting"]][1], params$report_data[["non_intersecting"]][2]
+         ),
+       dimnames = list(c(), c("Students", "Model"))
+       )
+
+
+  kableExtra::kable_styling(
+    kableExtra::add_header_above(
+      kableExtra::kable_paper(knitr::kable(inter_species, format = "html"))
+      
+        ,
+      c("Observed" = 2)
+    ),
+    full_width = FALSE
+  )
+  
+  
+```
+
+### 2 - Euclidean distance
+
+---
+
+#### 2.1 - Histogram
+The following graph plots the mean euclidean distance between human and model points, per species.
+It does not represent point for which the mean distance between cannot be calculated such as points
+associated with species unique to each set (as in this case there's nothing to compare it to).
+ \newline
+ \br
+```{r euclid_hist, echo = FALSE, warning=FALSE}
+breaks = floor(min(cdl$MeanDist, na.rm = TRUE)):ceiling(max(cdl$MeanDist, na.rm = TRUE))
+if (length(breaks) > 20){
+  og_max = max(breaks)
+  interval = ceiling(og_max/20)
+  breaks = seq(1, max(breaks), interval)
+  if (!(og_max %in% breaks)){
+    breaks = c(breaks, max(breaks)+interval)
+  }
+} else {
+  interval = 1
+}
+
+plot = suppressWarnings(
+  ggplot2::ggplot(cdl, ggplot2::aes(x = MeanDist)) +
+  ggplot2::geom_histogram(binwidth = interval, center = 0.5, fill = "#ff8000", color = "black") +
+  ggplot2::labs(
+       x = "Mean distance",
+       y = "#n") +
+  ggplot2::theme_minimal(base_size = 16) +
+  ggplot2::scale_x_continuous(breaks = breaks) + 
+  # ggplot2::scale_fill_discrete(drop=FALSE) +
+  ggplot2::theme(
+    legend.position = "none",
+    axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, face = "bold", size = 12),
+    axis.text.y = ggplot2::element_text(face = "bold", size = 12),
+    axis.title = ggplot2::element_text(face = "bold", size = 14),
+    plot.title = ggplot2::element_text(face = "bold", size = 20, color = "#444444", hjust = 0.5),
+    plot.subtitle = ggplot2::element_text(size = 14, color = "#666666", hjust = 0.5),
+    panel.grid.major = ggplot2::element_line(color = "gray80", linetype = "dashed")
+  )
+)
+plot(plot)
+```
+
+#### 2.2 - Useful thresholds
+
+The following table shows the amount of points under certain distances, both as absolute and relative values. *Relative* calculates as percentages of all points while *Relative sans* subtracts points without a mean euclidean distance (see above). *E.g*: if the first row of the table reads 1 | 16 |	80 | 100, then from a total of 16 data points, 80% was found to have a mean euclidean distance under 1 km and if you exclude those points for which euclidean distance cannot be calculated, 100% of points are under 1 km.   
+
+```{r euclid_dist, echo = FALSE}
+  dists = list(
+    "001" = sum(cdl[,5] <= 1, na.rm = TRUE),
+    "010" = sum(cdl[,5] <= 10, na.rm = TRUE),
+    "100" = sum(cdl[,5] <= 100, na.rm = TRUE),
+    "total" = length(cdl[,5]),
+    "sans" = sum(!is.na(cdl[,5]))
+  )
+
+  dist_thresh = data.frame(
+    dists = c(1, 10, 100),
+    absolute = c(dists$"001", dists$"010", dists$"100"),
+    relative = c(dists$"001"/dists$"total"*100, dists$"010"/dists$"total"*100, dists$"100"/dists$"total"*100),
+    sans = c(dists$"001"/dists$"sans"*100, dists$"010"/dists$"sans"*100, dists$"100"/dists$"sans"*100)
+  )
+
+  dist_thresh <- knitr::kable(dist_thresh,
+                              col.names = c("Distances", "n", "Relative (%)", "Relative sans (%)"),
+                              format = "html",
+                              align = c("c", "c")
+                              #, caption = "This is the table caption"
+                              #, col.names = c("", "TRUE", "FALSE")
+                              )
+    
+  kableExtra::kable_styling(
+      kableExtra::kable_classic_2(dist_thresh),
+    position = "left"
+  )
+
+```
+
+### 3 - Confusion matrix
+
+---
+
+Consider the model output our predicted values and the ground truth data as the observed values. You can then conceptualize the output as being made of True Positives (TP), data points both in the model output and the ground truth; False Negatives (FN), data points in the ground truth but not in the model output and False Positives (FP), data points in the model output but not in the ground truth, the often called “*hallucinations*”.
+
+```{r confusion_matrix, echo = FALSE}
+  x = matrix(
+        c(sum(cdl$Classification == "TP"), sum(cdl$Classification == "FP"),
+          sum(cdl$Classification == "FN"), NA),
+        nrow = 2, ncol = 2, byrow = TRUE, dimnames = list(c("TRUE", "FALSE"), c("TRUE", "FALSE"))
+      ) 
+  
+  x <- cbind(c("TRUE", "FALSE"), x)
+  
+  x <- cbind(c("Observed", "Observed"), x)
+
+  x <- knitr::kable(x,
+    format = "html",
+    align = c("c", "c"),
+    col.names = c(" ", "  ", "TRUE", "FALSE"),
+    row.names = FALSE
+  )
+
+  x <- kableExtra::kable_styling(
+    kableExtra::add_header_above(
+      kableExtra::kable_classic_2(x),
+      c(" " = 1, "  " = 1, "Predicted" = 2)
+    ),
+    position = "left"
+  )
+
+  kableExtra::collapse_rows(x, columns = c(1), valign = "middle")
+```
+
+### 3 - Confusion matrix, distance adjusted
+
+---
+
+The following confusion matrix is similar to the one above except the sum of each type of error (FN and FP) is done by weights, calculated to be inverse to the mean euclidean distance of that data point to all others. This way errors that are close to existing data for that species will count less than those further way. In situations where the mean euclidean distance cannot be calculated such as when entire species are unique to one of the sets (e.g. all False Negatives a species ). Additionally, in situations where there is no data other than False Positives, weight is set at maximum (1).
+```{r confdist_matrix, echo = FALSE, warning=FALSE}
+  my_matrix = cdl
+
+  my_matrix = cbind(my_matrix, weight = c(NA))
+  # Adding exception to account for no species being found by GPT
+
+
+
+  
+  # normalize the distances
+  if (TRUE){
+    # method 2: normalize by source
+    for (l in unique(my_matrix$file)){
+      by_file = my_matrix[my_matrix$file == l,]
+      
+      dists_per_file = my_matrix[my_matrix$file == l, "MeanDist"]
+      
+      # missing_dists = is.na(my_matrix[my_matrix$file == l, "MeanDist"])
+      # dists_per_file = dists_per_file[!is.na(dists_per_file)]
+      if (length(dists_per_file) > 0){
+        if (max(dists_per_file, na.rm = TRUE) == 0){
+          by_file$weight = dists_per_file
+        } else {
+          by_file$weight = (dists_per_file/max(dists_per_file, na.rm = TRUE))
+        }
+        
+        
+      }
+      
+      # FNs
+      if (is.na(mean(by_file$weight, na.rm = TRUE))){
+        by_file[rowSums(cbind(by_file$Classification == "FN", is.na(by_file$weight) )) == 2, "weight"] = 1
+      } else {
+        by_file[rowSums(cbind(by_file$Classification == "FN", is.na(by_file$weight) )) == 2, "weight"] = mean(by_file$weight, na.rm = TRUE)
+      }
+      
+      # FPs
+      by_file[rowSums(cbind(by_file$Classification == "FP", is.na(by_file$weight) )) == 2, "weight"] = 1
+      
+      # TPs
+      # True Positives are only now assigned their constant weight of 1. This is
+      # because in situations where you have a mix of TP and FN you still want to
+      # penalize FN that are further away as that's a lack of information more
+      # critical than missing information closer to what we already know.
+      by_file[by_file$Classification == "TP", "weight"] = 1
+      
+      
+      
+      
+      
+      my_matrix[my_matrix$file == l,] = by_file
+    }
+  } else {
+    # method 1: normalize by entire dataset
+    # All rows past this point with NA in MinDist and MeanDist are the result of 
+    # species being only found in one of the datasets. As MeanDist will act as a
+    # weight next, assign NAs as 1.
+      
+      
+  total_FNs = rep(FALSE, nrow(my_matrix))
+  for (n in 1:nrow(my_matrix)){
+    if (all(my_matrix[n,3] == "FN", is.na(my_matrix[n,4:5]))){
+      total_FNs[n] = TRUE
+    }
+    
+  }
+    
+    # Total FNs will contribute the average
+    my_matrix[total_FNs, 4:5] = c(mean(my_matrix[,4], na.rm = TRUE), mean(my_matrix[,5], na.rm = TRUE))
+    
+    missing_dists = is.na(rowSums(my_matrix[,c("MinDist","MeanDist")]))
+    my_matrix[!missing_dists,5] = my_matrix[!missing_dists,5]/max(my_matrix[!missing_dists,5])
+    
+    my_matrix[missing_dists,c("MinDist","MeanDist")] = c(1,1)
+    
+    
+      cmat_adjust = matrix(
+        c(sum(cdl$Classification == "TP"), sum(cdl$Classification == "FP"),
+          sum(cdl$Classification == "FN"), NA),
+        nrow = 2, ncol = 2, byrow = TRUE, dimnames = list(c("TRUE", "FALSE"), c("TRUE", "FALSE"))
+      )
+  cmat_adjust[1,2] = sum(my_matrix[my_matrix[,3] == "FP",5])  
+  cmat_adjust[2,1] = sum(my_matrix[my_matrix[,3] == "FN",5])  
+  }
+  
+
+
+  
+  
+  
+  # my_matrix[my_matrix$Classification == "TP", "MeanDist"] = 1 solved further ahead
+
+  # my_matrix[my_matrix[,5] > 10 ,5] = 1
+                                                                       
+  # for (r in unique(my_matrix[,6])){
+  #   my_matrix[my_matrix[,6] == r,5] = my_matrix[my_matrix[,6] == r,5]/max(my_matrix[my_matrix[,6] == r,5])
+  # }
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+  cmat_adjust = matrix(
+        c(sum(my_matrix[my_matrix$Classification == "TP","weight"]),
+          sum(my_matrix[my_matrix$Classification == "FP","weight"]),
+          sum(my_matrix[my_matrix$Classification == "FN","weight"]),
+          NA),
+        nrow = 2, ncol = 2, byrow = TRUE, dimnames = list(c("TRUE", "FALSE"), c("TRUE", "FALSE"))
+  )
+  
+  x <- cbind(c("TRUE", "FALSE"), cmat_adjust)
+  
+  x <- cbind(c("Observed", "Observed"), x)
+
+  x <- knitr::kable(x,
+    format = "html",
+    align = c("c", "c"),
+    col.names = c(" ", "  ", "TRUE", "FALSE"),
+    row.names = FALSE
+  )
+
+  x <- kableExtra::kable_styling(
+    kableExtra::add_header_above(
+      kableExtra::kable_classic_2(x),
+      c(" " = 1, "  " = 1, "Predicted" = 2)
+    ),
+    position = "left"
+  )
+
+  kableExtra::collapse_rows(x, columns = c(1), valign = "middle")
+
+
+```
+
+### 4 - Performance metrics
+
+---
+
+```{r perf_metrics, echo = FALSE}
+  cm = matrix(
+        c(sum(cdl$Classification == "TP"),
+          sum(cdl$Classification == "FP"),
+          sum(cdl$Classification == "FN"),
+          NA),
+        nrow = 2, ncol = 2, byrow = TRUE, dimnames = list(c("TRUE", "FALSE"), c("TRUE", "FALSE"))
+      )
+
+  perf_metrics = matrix(nrow = 4, ncol = 2, byrow = TRUE,
+       c(
+         # "Accuracy", mean(params$report_data[["accuracy"]], na.rm = TRUE),
+         # "Recall", mean(params$report_data[["sensitivity"]], na.rm = TRUE),
+         # "Precision", mean(params$report_data[["precision"]], na.rm = TRUE),
+         # "F1", mean(params$report_data[["f1"]], na.rm = TRUE)
+         "Accuracy", arete:::aux_accuracy(cm),
+         "Recall", arete:::aux_recall(cm),
+         "Precision", arete:::aux_precision(cm),
+         "F1", arete:::aux_f1(cm)
+         ),
+       dimnames = list(c(), c("Metric", "Value"))
+       )
+
+  perf_metrics <- knitr::kable(perf_metrics,
+      format = "html",
+      align = c("c", "c")
+      #, caption = "This is the table caption"
+      #, col.names = c("", "TRUE", "FALSE")
+  )
+    
+  kableExtra::kable_styling(
+      kableExtra::kable_classic_2(perf_metrics),
+    position = "left"
+  )
+
+# https://community.rstudio.com/t/cell-merge-by-column-in-kableextra/68185/9
+```
+
+### 4 - Performance metrics, distance adjusted
+
+---
+
+```{r perf_metrics_adjusted, echo = FALSE}
+  cm = cmat_adjust
+  
+  perf_metrics = matrix(nrow = 4, ncol = 2, byrow = TRUE,
+       c(
+         # "Accuracy", mean(params$report_data[["accuracy"]], na.rm = TRUE),
+         # "Recall", mean(params$report_data[["sensitivity"]], na.rm = TRUE),
+         # "Precision", mean(params$report_data[["precision"]], na.rm = TRUE),
+         # "F1", mean(params$report_data[["f1"]], na.rm = TRUE)
+         "Accuracy", arete:::aux_accuracy(cm),
+         "Recall", arete:::aux_recall(cm),
+         "Precision", arete:::aux_precision(cm),
+         "F1", arete:::aux_f1(cm)
+         ),
+       dimnames = list(c(), c("Metric", "Value"))
+       )
+
+  perf_metrics <- knitr::kable(perf_metrics,
+      format = "html",
+      align = c("c", "c")
+      #, caption = "This is the table caption"
+      #, col.names = c("", "TRUE", "FALSE")
+  )
+    
+  kableExtra::kable_styling(
+      kableExtra::kable_classic_2(perf_metrics),
+    position = "left"
+  )
+```
